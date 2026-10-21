@@ -1,0 +1,80 @@
+Actúa como un desarrollador backend senior especializado en Python, FastAPI, MySQL y despliegues en AWS EC2 con Windows Server 2025. Necesito que construyas un proyecto completo para mi examen 2.7 de Escalamiento de Redes del Instituto Tecnológico de Pachuca. Soy el estudiante 2 y mi responsabilidad es desarrollar la API de AUTOMÓVILES.
+
+CONTEXTO Y ARQUITECTURA
+- Mi API correrá en una instancia EC2 con Windows Server 2025.
+- Debe escuchar en 0.0.0.0:5000 para aceptar conexiones desde los clientes autorizados.
+- La base de datos está en Amazon RDS MySQL, pertenece a la cuenta AWS independiente del estudiante 1 y será compartida con la API del estudiante 3.
+- Mi API consultará exclusivamente los automóviles mediante un procedimiento almacenado de MySQL. No implementes altas, modificaciones ni eliminaciones.
+- Posteriormente, un frontend publicado en Vercel consumirá mi API mediante un proxy inverso. La ruta pública prevista es /api/automoviles.
+- El código se desarrollará primero en Windows local, se subirá a GitHub y después se clonará en EC2.
+- Actualmente todavía no tengo conexión funcional con RDS. No inventes direcciones, credenciales, nombres de tablas, columnas ni nombres definitivos de procedimientos almacenados.
+
+OBJETIVO
+Crea e implementa en el workspace actual un proyecto mantenible, funcional y documentado. Antes de modificar archivos, inspecciona el workspace y reutiliza los archivos existentes si son pertinentes. No sobrescribas proyectos ajenos ni elimines archivos sin necesidad.
+
+TECNOLOGÍAS
+- Python compatible con Windows Server 2025.
+- FastAPI y Uvicorn.
+- mysql-connector-python para MySQL.
+- python-dotenv para cargar variables de entorno.
+- Pydantic y manejo adecuado de errores.
+- pytest y TestClient para pruebas automatizadas.
+
+CONFIGURACIÓN
+Crea un archivo .env local con valores de ejemplo no sensibles y las siguientes variables configurables:
+APP_NAME=API Automoviles
+APP_HOST=0.0.0.0
+APP_PORT=5000
+APP_ENV=development
+DB_HOST=REEMPLAZAR_ENDPOINT_RDS_DEL_ESTUDIANTE_1
+DB_PORT=3306
+DB_NAME=REEMPLAZAR_NOMBRE_BASE_DATOS
+DB_USER=REEMPLAZAR_USUARIO_MYSQL
+DB_PASSWORD=REEMPLAZAR_CONTRASENA_MYSQL
+DB_CONNECT_TIMEOUT=5
+DB_PROCEDURE_AUTOMOVILES=REEMPLAZAR_NOMBRE_PROCEDIMIENTO_ALMACENADO
+CORS_ORIGINS=http://localhost:5173
+
+Usa variables de entorno para toda configuración. Valida los campos necesarios y ofrece errores claros cuando falten. Nunca muestres la contraseña ni otros secretos en logs o respuestas HTTP. El nombre del procedimiento debe ser configurable y validarse como identificador SQL seguro antes de construir la llamada CALL. No supongas que el procedimiento se llama sp_obtener_automoviles ni que devuelve columnas específicas: documenta cómo adaptar la integración cuando el estudiante 1 proporcione el nombre y el contrato real.
+
+SEGURIDAD DE GIT
+- Crea .gitignore que excluya .env, entornos virtuales, cachés, archivos de prueba temporales y secretos.
+- Crea .env.example con placeholders sin credenciales reales para subirlo a GitHub.
+- No subas .env, contraseñas, tokens, certificados privados ni archivos de configuración sensibles.
+- No crees credenciales reales ni solicites que se incluyan en el código.
+
+ENDPOINTS
+1. GET /health: devuelve estado de la aplicación sin revelar secretos. Debe poder comprobarse sin conexión a RDS.
+2. GET /health/db: comprueba la conectividad con MySQL y devuelve un estado claro; nunca expone credenciales.
+3. GET /api/automoviles: ejecuta exclusivamente el procedimiento almacenado configurado, devuelve los registros en JSON y maneja fallos de conexión, procedimiento inexistente y errores SQL con respuestas HTTP apropiadas. Cierra cursores y conexiones correctamente. No debe devolver registros ficticios como si fueran datos reales.
+4. GET /docs: documentación Swagger de FastAPI.
+
+DISEÑO Y PRUEBAS
+- Organiza el código por responsabilidades: configuración, conexión a base de datos, servicios, rutas y aplicación principal, sin sobrearquitectura innecesaria.
+- Implementa consultas parametrizadas cuando corresponda y evita SQL construido con datos del usuario.
+- Si no hay conexión a RDS, /health debe continuar funcionando y los endpoints dependientes de MySQL deben reportar el error adecuadamente.
+- Añade pruebas automatizadas que no necesiten una instancia real de RDS. Simula la capa de acceso a datos mediante mocks y comprueba los códigos HTTP y el JSON de respuesta.
+- Añade pruebas de configuración y de validación del identificador del procedimiento.
+- No permitas que las pruebas sustituyan silenciosamente una consulta real por datos ficticios.
+- Configura CORS mediante CORS_ORIGINS, sin comodines inseguros por defecto. Explica que el proxy de Vercel debe ser la vía prevista para el frontend en producción.
+
+GITHUB Y DESPLIEGUE
+- Crea requirements.txt con dependencias necesarias y compatibles.
+- Crea README.md en español, con pasos exactos para Windows: crear entorno virtual, instalar dependencias, configurar .env, ejecutar localmente, abrir Swagger, ejecutar pruebas, inicializar Git, subir a un repositorio GitHub y desplegar en EC2 Windows Server 2025 después de clonar el repositorio.
+- Incluye los comandos para ejecutar Uvicorn en el puerto 5000 y mantenerlo escuchando en la interfaz de red adecuada.
+- Documenta las reglas de seguridad y conectividad requeridas: TCP 5000 para el acceso a la API desde los orígenes autorizados; TCP 3306 desde el origen autorizado hacia RDS; rutas y reglas de seguridad compatibles con las VPC involucradas. No recomiendes abrir todos los puertos a 0.0.0.0/0. Distingue entre Security Groups, tablas de rutas, VPC Peering y conectividad ICMP.
+- Explica que las credenciales se llenarán en el .env de cada entorno y no se guardarán en GitHub.
+- Incluye comandos de diagnóstico para probar localmente, desde EC2 y desde el entorno del examen.
+- No configures servicios AWS ni publiques el servidor automáticamente; limita los cambios a los archivos del proyecto y comandos documentados.
+
+CRITERIOS DE ACEPTACIÓN
+- La aplicación inicia aunque RDS no esté disponible.
+- GET /health responde correctamente sin depender de MySQL.
+- GET /health/db comprueba la conexión real cuando las variables estén configuradas.
+- GET /api/automoviles ejecuta el procedimiento almacenado real cuando RDS esté disponible.
+- Las pruebas automatizadas pasan sin credenciales reales.
+- El repositorio puede clonarse en EC2 sin depender de archivos locales no versionados, salvo el .env que se configura por separado.
+- Los endpoints y la documentación permiten demostrar la API ante el profesor.
+
+FORMA DE TRABAJO
+Implementa los archivos necesarios directamente en el workspace. Primero presenta un breve plan, después realiza los cambios, ejecuta las pruebas disponibles y corrige los fallos. No te limites a darme ejemplos de código. Al terminar, informa qué archivos creaste, qué pruebas ejecutaste y sus resultados, qué valores exactos debo pedirle al estudiante 1, qué debo configurar en AWS y cuáles son los siguientes pasos para publicar el repositorio y desplegarlo en EC2. Si falta información del esquema de la base de datos, deja esa dependencia claramente documentada en lugar de inventarla.
